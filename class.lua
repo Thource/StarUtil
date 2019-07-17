@@ -1,9 +1,3 @@
-local function appendfenv(func, appends)
-    local env = table.copy(getfenv())
-    for k, v in pairs(appends) do env[k] = v end
-    setfenv(func, env)
-end
-
 function class(name, setAttrs)
     if _G[name] then
         error("Unable to create class `" .. name .. "`: name conflict")
@@ -16,11 +10,9 @@ end
 
 function local_class(name, setAttrs)
     local klassAttrs, instanceAttrs, extendedClass = {}, {}, nil
-    appendfenv(setAttrs, {
-        extend = function(class)
-            extendedClass = class
-        end
-    })
+    klassAttrs.extend = function(class)
+        extendedClass = class
+    end
     setAttrs(klassAttrs, instanceAttrs)
 
     local klass = {}
@@ -47,6 +39,7 @@ function local_class(name, setAttrs)
     local restrictedKlassAttrs = table.copy(klassAttrs)
     restrictedKlassAttrs.name = nil
     restrictedKlassAttrs.new = nil
+    restrictedKlassAttrs.extend = nil
     for attr, val in pairs(restrictedKlassAttrs) do
         klass[attr] = val
     end
